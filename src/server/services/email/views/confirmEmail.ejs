@@ -1,0 +1,23 @@
+<div style="background-color: #f5f5f5; padding: 30px 0;">
+
+    <div style="margin-left:auto; margin-right:auto; max-width: 600px; background-color: #fff;">
+        <% include ./partials/header.ejs %>
+        <div style="padding: 15px;">
+            <h3>Здравствуйте, user!</h3>
+            <p>Создание Вашей учетной записи в  <b>Wekingsbot.com</b> почти закончено.</p>
+            <p style="padding-bottom: 25px;">Для того чтобы подтвердить свой email адрес перейдите по ссысле ниже.</p>
+            <!--<p>-->
+                <!--<strong><%= link %></strong>-->
+                <!--<a href="<%= link %>" style="color: #617b62;">Посилання для пітвердження email</a>-->
+            <!--</p>-->
+            <p>
+                <a href="<%= link %>" target="_blank" style="padding: 5px; background-color: #0a429d; color: #ffffff; border-radius: 5px; text-decoration: none;">Да, это мой email!</a>
+            </p>
+            <p style="padding-top: 25px;">Если Вы не регистрировались на <b>Wekingsbot.com</b> просто проигнорируйте это письмо.</p>
+            <p style="padding-top: 25px;">Если у Вас остались еще вопросы, пишите нам на почту wekingsbotsupport@gmail.com</p>
+        </div>
+        <% include ./partials/footer.ejs %>
+    </div>
+
+</div>
+
