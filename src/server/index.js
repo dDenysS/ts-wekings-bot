@@ -10,6 +10,7 @@ const staticRoutes = require('./api/static')
 
 require('./database')
 require('./services/passport')
+require('./services/cron')
 
 ///middlewares
 require('./middlewares/session')(app)
@@ -40,8 +41,9 @@ app.on('error', err => {
     console.log(err)
 })
 
-process.on('uncaughtException', function (err) {
+process.on('uncaughtException', err => {
     console.log(err)
 })
 
 app.listen(process.env.PORT || 7777)
+console.log('Port:', process.env.PORT || 7777)

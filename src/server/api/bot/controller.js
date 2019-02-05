@@ -1,5 +1,5 @@
-const WeBot = require('../../services/bot')
-const WeInfo = require('../../services/bot').WeInfo
+const WeLogin = require('../../services/bot/Login')
+const WeInfo = require('../../services/bot/Info').default
 const dbQueries = require('./dbQueries')
 
 module.exports = {
@@ -9,7 +9,7 @@ module.exports = {
     },
 
     async getCaptcha(ctx) {
-        const {wkSession, img} = await WeBot.login.getCaptcha()
+        const {wkSession, img} = await WeLogin.getCaptcha()
         ctx.session.wkSession = wkSession
         ctx.body = {img}
     },
@@ -39,7 +39,7 @@ module.exports = {
         let _cookie
         let saveTobase = false
 
-        await WeBot.login.loginSubmit(body, wkSession).then(({cookie}) => {
+        await WeLogin.loginSubmit(body, wkSession).then(({cookie}) => {
             _cookie = cookie
             ctx.session.cookie = cookie
             ctx.body = {message: 'Auth success'}

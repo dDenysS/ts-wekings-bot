@@ -9,8 +9,8 @@
   "scripts": {
     "start": "npm run serve",
     "build": "npm run build-ts && npm run tslint && npm run copy-static-assets",
-    "serve": "node dist/server.js",
-    "watch-node": "nodemon dist/server.js",
+    "serve": "node dist/app.js",
+    "watch-node": "SET NODE_ENV=development && nodemon dist/app.js",
     "watch": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\"   \"npm run watch-ts\" \"npm run watch-node\"",
     "build-ts": "tsc",
     "watch-ts": "tsc -w",
@@ -21,6 +21,9 @@
     "watch-debug": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-sass\" \"npm run watch-ts\" \"npm run serve-debug\""
   },
   "dependencies": {
+    "@types/async": "^2.4.0",
+    "@types/node-cron": "^2.0.0",
+    "async": "^2.6.1",
     "cheerio": "^1.0.0-rc.2",
     "cookie": "^0.3.1",
     "ejs": "^2.6.1",
@@ -54,6 +57,8 @@
     "@types/dotenv": "^4.0.2",
     "@types/es6-promise": "^3.3.0",
     "@types/knex": "^0.14.26",
+    "@types/koa": "^2.0.48",
+    "@types/koa-router": "^7.0.39",
     "@types/node": "^9.6.41",
     "@types/nodemailer": "^4.3.4",
     "@types/passport": "^0.4.3",
