@@ -1,7 +1,6 @@
 import { Cookie } from 'tough-cookie'
 import { RequestResponse } from 'request'
 
-
 const cheerio = require('cheerio')
 const login = require('./login')
 const rp = require('request-promise')
@@ -24,6 +23,7 @@ interface IReqOptions {
     uri: string,
     method: string,
     resolveWithFullResponse: boolean,
+    followRedirect: boolean,
 
     transform(body: any, response: RequestResponse): IReqTransform
 
@@ -34,23 +34,28 @@ interface IReqOptions {
 
 class WeBot {
     public readonly rememberToken: string
-    public readonly wkSession: string
+    public wkSession: string
     public resp: IReqTransform
+    public log: boolean
 
     public constructor({rememberToken, wkSession}: IAccess) {
         this.wkSession = wkSession
         this.rememberToken = rememberToken
+        this.log = false
     }
 
     public async loadData(url: string, method: string = 'GET'): Promise<Cheerio> {
         const options: IReqOptions = {
             uri: url,
             method,
+            followRedirect: false,
             resolveWithFullResponse: true,
             transform: this.requestTransform,
             headers: {
-                cookie: cookie.serialize('_wk_session', this.wkSession) + '; ' +
-                    cookie.serialize('remember_token', this.rememberToken)
+                // cookie: cookie.serialize('_wk_session', this.wkSession) + '; ' +
+                //     cookie.serialize('remember_token', this.rememberToken)
+                cookie: new cookie({key: '_wk_session', value: this.wkSession}).toString() + '; ' +
+                    new cookie({key: 'remember_token', value: this.rememberToken}).toString()
             }
         }
         return this.resp = await rp(options)
@@ -59,16 +64,12 @@ class WeBot {
 
     private requestTransform = (body: any, response: RequestResponse): IReqTransform => {
         const $: CheerioStatic = cheerio.load(body, {decodeEntities: false})
-
-        console.log('requestTransform cookie', response.headers['set-cookie'])
-        console.log('parse cookie', cookie.parse(response.headers['set-cookie'] as any))
-        console.log('1:notify', $('.info .notifications_block:first-child .notice td:last-child').text())
-        console.log('1:notify', $('.info .notifications_block').html())
+        console.log('notify::', $('.info .notifications_block:first-child .notice td:last-child').text())
         return {
             statusCode: response.statusCode,
             $,
             headers: response.headers,
-            cookie: cookie.parse(response.headers['set-cookie'] as any)
+            cookie: cookie.parse(response.headers['set-cookie'][0])
         }
     }
 }
@@ -85,7 +86,7 @@ class WeInfo extends WeBot {
         await this.loadData('http://wekings.ru/game/inventories')
 
         this.resp.$('.page_game_inventories_user .block')
-            .each(function (index: number, item: CheerioElement) {
+            .each(function () {
                 if (~$(this).html().search(name)) {
                     exist = true
                 }
@@ -152,13 +153,16 @@ class WeGift extends WeInfo {
 
         const url = `http://wekings.ru/game/presents/targets?item_key=${nameItem}&type=${this.type}`
         await this.loadData(url)
-        const targetUrl = this.resp.$('.page_game_presents_targets > ul > li:first-child .links a').attr('href')
-
-        const drid: string = new URL('http://wekings.ru' + targetUrl).searchParams.get('drid')
-
+        const targetUrl: string = this.resp.$('.page_game_presents_targets > ul > li:first-child .links a').attr('href')
+        const drid: string = new URL(`http://wekings.ru${targetUrl}`).searchParams.get('drid')
         const sendUrl = `http://wekings.ru/game/presents/give?item_key=${nameItem}&amp;` +
             `target_id=${idUser}&amp;type=${this.type}&amp;drid=${drid}`.replace(/&amp;/g, '&')
-        await this.loadData(sendUrl)
+        try {
+            await this.loadData(sendUrl)
+        } catch (e) {
+            this.wkSession = e.response.cookie.value
+            await this.loadData('http://wekings.ru/game/inventories/user')
+        }
     }
 
     private static getUrlBuy(nameItem: string): string {
@@ -170,32 +174,21 @@ class WeGift extends WeInfo {
     }
 }
 
-class WeCurse extends WeGift {
-    private readonly type: string
-
-    constructor({rememberToken, wkSession}: IAccess) {
-        super({rememberToken, wkSession})
-        this.type = 'curse'
-    }
-
-    static getUrlBeforeBuy(nameItem) {
-        return `http://wekings.ru/game/
-        confirm?back_url=/game/shop/dealers/curses?page=2
-        &icon=a_silver&key_part=9739&text=купить Отравленный пирог в количестве 1 за 3000
-         серебра&url=/game/shop/dealers/curses/buy?item=${nameItem}&page=2&quantity=1`
-    }
-}
-
-
 module.exports = {
     login,
     WeInfo: WeInfo,
     WeGift
 }
-const wkSession: string = 'BAh7CzoPc2Vzc2lvbl9pZEkiJWIyNWRkZmNkMTZjOWE4OGFlYmQzNmQ2YzY3NjFlZDhhBjoGRUY6E3NpbXBsZV9jYXB0Y2hhSSItZDZlZGZmYmY1ZDU3MWUwNWQ3NjE1MTA3YTBjYjI1ODMwYzc0NDE0YQY7BkY6DnJldHVybl90b0kiLGh0dHA6Ly93ZWtpbmdzLnJ1L3Zpc2l0b3IvcHJvY2Vzc19sb2dpbgY7BlRJIgpmbGFzaAY7BlRJQzonQWN0aW9uQ29udHJvbGxlcjo6Rmxhc2g6OkZsYXNoSGFzaHsGOgtub3RpY2VJIgAGOwZGBjoKQHVzZWR7BjsKRjoJdXNlcmkDLI4tOhlwYXJ0bmVyX3JlZmVyZW5jZV9pZGkC6Uw'
-const rememberToken: string = '27ca0f7d99f3f622efb55515eea1c08d'
-const Gifts = new WeGift({wkSession,rememberToken})
 
-Gifts.send('box_gift', 1957999).then(()=>{
+const wkSession: string = 'BAh7CzoPc2Vzc2lvbl9pZEkiJWJmODdiM2MyZDA0MDM4ZDY4MWViZWFlYTJiOWNlOTM1BjoGRUY6E3NpbXBsZV9jYXB0Y2hhSSItOWMxODZmZTA1ZmVlNWZjZDVlOTFlMzkxZTg5Y2M4ZjZhZmVjYmU1NgY7BkY6DnJldHVybl90b0kiLGh0dHA6Ly93ZWtpbmdzLnJ1L3Zpc2l0b3IvcHJvY2Vzc19sb2dpbgY7BlRJIgpmbGFzaAY7BlRJQzonQWN0aW9uQ29udHJvbGxlcjo6Rmxhc2g6OkZsYXNoSGFzaHsGOgtub3RpY2VJIgAGOwZGBjoKQHVzZWR7BjsKRjoJdXNlcmkDLI4tOhlwYXJ0bmVyX3JlZmVyZW5jZV9pZGkC6Uw=--1cfa9323fb3f821d91f6fa55d4e70ac72dad0e55'
+const rememberToken: string = '27ca0f7d99f3f622efb55515eea1c08d'
+
+async function init(): Promise<void> {
+    const Gifts = new WeGift({wkSession, rememberToken})
+    await Gifts.loadData('http://wekings.ru/game/inventories')
+    await Gifts.send('box_gift', 534471)
+}
+
+init().then(() => {
     console.log('done')
 })

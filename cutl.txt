@@ -1,0 +1,4 @@
+curl -X GET \
+  'http://wekings.ru/game/presents/give?item_key=box_gift&amp;target_id=534471&type=gift&drid=2852%0A' \
+  -H 'Postman-Token: 879e9319-5c27-4ddc-b1ca-37f23c7cda09' \
+  -H 'cache-control: no-cache' -b "remember_token=27ca0f7d99f3f622efb55515eea1c08d; _wk_session=BAh7CzoPc2Vzc2lvbl9pZEkiJWFlYWUzNzNiOTY4MzNkMGI1MjRhY2EwZDM3YjEwOTUxBjoGRUZJIgpmbGFzaAY7BlRJQzonQWN0aW9uQ29udHJvbGxlcjo6Rmxhc2g6OkZsYXNoSGFzaHsGOgtub3RpY2UwBjoKQHVzZWR7BjsIRjoTc2ltcGxlX2NhcHRjaGFJIi1kYTRlNDYzNDAwYTUxODY5ZWFjZDQzZTViNjczYjliMjJhZjJjY2E4BjsGRjoOcmV0dXJuX3RvSSIsaHR0cDovL3dla2luZ3MucnUvZ2FtZS9pbnZlbnRvcmllcy91c2VyBjsGVDoZcGFydG5lcl9yZWZlcmVuY2VfaWRpAulMOgl1c2VyaQMsji0%3D--29c798b42b4a27dd883b1e60bfe5b76fd6a0a4f0;"
